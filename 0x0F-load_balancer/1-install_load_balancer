@@ -1,0 +1,47 @@
+#!/usr/bin/env bash
+# shellcheck disable=SC2154
+# Install and setupe HAProxy
+
+command -v "$1" &> /dev/null
+
+#shellcheck disable=SC2181
+if [ $? -ne 0 ]; then
+	echo -e "	Installing: ${brown}$1${reset}\n"
+	sudo apt-get update -y -qq && \
+		sudo apt-get install -y haproxy -qq
+	echo -e "\n"
+else
+	echo -e "	${green}${1} is already installed.${reset}\n"
+fi
+
+# backup default server config file
+sudo cp /etc/haproxy/haproxy.cfg haproxy_default.backup
+
+echo -e "\n${blue}Setting up some minor stuff.${reset}\n"
+
+server_config=\
+"
+defaults
+    listen load_balancer
+    bing *:80
+    mode http
+    balance roundrobin
+    option httpclose
+    option forwardfor
+    server 229883-web-01 52.204.97.3:80 check
+    server 229883-web-02 54.237.96.136:80 check
+"
+
+# shellcheck disable=SC2154
+echo "$server_config" | sudo dd status=none of=/etc/haproxy/haproxy.cfg
+
+echo -e "\n${blue}Set up config done.${reset}\n"
+
+# enable haproxy to be started by init script
+echo "ENABLED=1" | sudo dd status=none of=/etc/default/haproxy
+
+if [ "$(pgrep -c haproxy)" -le 0 ]; then
+	sudo service haproxy start
+else
+	sudo service haproxy restart
+fi
