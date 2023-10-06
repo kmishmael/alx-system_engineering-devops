@@ -1,23 +1,23 @@
 global
-        log /dev/log    local0
+    log /dev/log    local0
 	stats socket /run/haproxy/admin.sock mode 660 level admin
 
 defaults
-        log     global
-        mode    http
-        option  httplog
+    log     global
+    mode    http
+    option  httplog
 	timeout connect  10s
 	timeout client  30s
 	timeout server  30s
 
-frontend th3gr00t-tech-frontend
+frontend kmishmael-frontend
 	bind *:80
-	bind *:443 ssl crt /etc/haproxy/certs/th3gr00t.tech.pem
+	bind *:443 ssl crt /etc/haproxy/certs/kmishmael.tech.pem
 	http-request redirect scheme https unless { ssl_fc }
 	http-request set-header X-Forwarded-Proto https
-	default_backend th3gr00t-tech-backend
+	default_backend kmishmael-backend
 
-backend th3gr00t-tech-backend
+backend kmishmael-backend
 	balance roundrobin
-	server 453-web-01 35.243.128.200:80 check
-	server 453-web-02 3.239.120.96:80 check
+	server 229883-web-01 52.204.97.3:80 check
+	server 229883-web-02 54.237.96.136:80 check
